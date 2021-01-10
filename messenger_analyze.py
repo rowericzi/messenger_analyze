@@ -90,15 +90,16 @@ def plot_messages(messages, N):
 def most_common_words(messages, N):
 	words = {}
 	for message in messages['messages']:
-		if 'content' in message:
-			message_str = re.sub(r'[,.?!/()+"*@:]', '', message['content'])
-			#message_str = message['content']
-			word_list = message_str.lower().split()
-			for word in word_list:
-				if word in words:
-					words[word] += 1
-				elif len(word) >= N:
-					words[word] = 1
+		if 'content' not in message:
+			continue
+		message_str = re.sub(r'[,.?!/()+"*@:]', '', message['content'])
+		#message_str = message['content']
+		word_list = message_str.lower().split()
+		for word in word_list:
+			if word in words:
+				words[word] += 1
+			elif len(word) >= N:
+				words[word] = 1
 	return words
 
 if __name__ == "__main__":
