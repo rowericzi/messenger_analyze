@@ -44,21 +44,6 @@ def convert(obj, enc):
 		return {convert(key, enc) : convert(val, enc)
 			for key, val in obj.items()}
 	else: return obj
-"""
-def moving_avg(arr, N):
-	N = N // 2
-	out = [0]*len(arr)
-	for i, x in enumerate(arr):
-		j = i
-		while j >= 0 and abs(arr[j] - arr[i]) < N:
-			out[i] += 1
-			j -= 1
-		j = i + 1
-		while j < len(arr) and abs(arr[j] - arr[i]) < N:
-			out[i] += 1
-			j += 1
-	return out
-"""
 
 def load_json_files(dir):
 	json_files = [ file for file in os.listdir(dir) if file.endswith(".json") ]
@@ -80,9 +65,6 @@ def plot_messages(messages):
 	timestamps = [ x['timestamp_ms'] for x in messages['messages'] ]
 	timestamps.sort()
 	day_timestamps = [ math.floor(mdates.epoch2num(t/1000)) for t in timestamps ]
-	#print(day_timestamps)
-	#values = moving_avg(timestamps, 86400000)
-	#xval = [mdates.num2date(mdates.epoch2num(t/1000)) for t in timestamps]
 	xval = [ x for x in range(day_timestamps[0], day_timestamps[-1] + 1) ]
 	values = [0]*len(xval)
 
