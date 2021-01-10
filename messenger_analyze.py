@@ -28,6 +28,7 @@ import matplotlib.dates as mdates
 import matplotlib
 matplotlib.use('SVG')
 import numpy as np
+import pandas as pd
 import pprint
 
 """
@@ -61,7 +62,7 @@ def load_json_files(dir):
 	del json_list
 	return messages
 
-def plot_messages(messages):
+def plot_messages(messages, N):
 	timestamps = [ x['timestamp_ms'] for x in messages['messages'] ]
 	timestamps.sort()
 	day_timestamps = [ math.floor(mdates.epoch2num(t/1000)) for t in timestamps ]
@@ -71,6 +72,11 @@ def plot_messages(messages):
 	for t in day_timestamps:
 		values[t - day_timestamps[0]] += 1
 
+	if N > 1:
+		values_moving_avg = pd.Series(values).rolling(window=N).mean().iloc[N-1:].values
+	else:
+		values_moving_avg = values
+
 	fig, ax = plt.subplots()
 	#locator = mdates.WeekdayLocator()
 	locator = mdates.MonthLocator(interval=3)
@@ -78,20 +84,20 @@ def plot_messages(messages):
 	ax.xaxis.set_major_formatter(mdates.AutoDateFormatter(locator))
 	plt.xticks(rotation=45, ha="right")
 	fig.tight_layout()
-	ax.plot(xval, values)
+	ax.plot(xval[N-1:], values_moving_avg, lw=0.5)
 	fig.savefig("xd.svg")
 
 def most_common_words(messages, N):
 	words = {}
 	for message in messages['messages']:
 		if 'content' in message:
-			message_str = re.sub(r'[,.?!/()+"*@]', '', message['content'])
+			message_str = re.sub(r'[,.?!/()+"*@:]', '', message['content'])
 			#message_str = message['content']
 			word_list = message_str.lower().split()
 			for word in word_list:
 				if word in words:
 					words[word] += 1
-				elif len(word) > N:
+				elif len(word) >= N:
 					words[word] = 1
 	return words
 
@@ -101,6 +107,7 @@ if __name__ == "__main__":
 	pp = pprint.PrettyPrinter(sort_dicts=False)
 	words = most_common_words(messages, 5)
 	words_sorted = dict(sorted(words.items(), key=lambda item: item[1], reverse=True))
-	for key, value in islice(words_sorted.items(), 0, 40):
+	for key, value in islice(words_sorted.items(), 0, 20):
 		print("{0}: {1}".format(key, value))
-	plot_messages(messages)
+	print(len(messages['messages']))
+	plot_messages(messages, 7)
