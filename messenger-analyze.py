@@ -21,12 +21,14 @@ import sys
 import os
 import json
 import math
+import re
+from itertools import islice
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import matplotlib
 matplotlib.use('SVG')
 import numpy as np
-
+import pprint
 
 """
 	function converting every string in an object
@@ -97,7 +99,26 @@ def plot_messages(messages):
 	ax.plot(xval, values)
 	fig.savefig("xd.svg")
 
+def most_common_words(messages, N):
+	words = {}
+	for message in messages['messages']:
+		if 'content' in message:
+			message_str = re.sub(r'[,.?!/()+]', '', message['content'])
+			#message_str = message['content']
+		word_list = message_str.lower().split()
+		for word in word_list:
+			if word in words:
+				words[word] += 1
+			elif len(word) > N:
+				words[word] = 1
+	return words
+
 if __name__ == "__main__":
 	workdir = os.path.join(os.environ['PWD'], sys.argv[1])
 	messages = load_json_files(workdir)
+	pp = pprint.PrettyPrinter(sort_dicts=False)
+	words = most_common_words(messages, 5)
+	words_sorted = dict(sorted(words.items(), key=lambda item: item[1], reverse=True))
+	for key, value in islice(words_sorted.items(), 0, 40):
+		print("{0}: {1}".format(key, value))
 	plot_messages(messages)
